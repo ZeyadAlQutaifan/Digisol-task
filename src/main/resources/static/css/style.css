@@ -1,0 +1,44 @@
+:root {
+    --main-color: #2c3e50;
+    --accent-color: #e67e22;
+}
+
+body {
+    background: #f8f9fa;
+    font-family: 'Tajawal', sans-serif;
+}
+
+.hero-section {
+    background: linear-gradient(rgba(0,0,0,0.7), rgba(0,0,0,0.7)),
+    url('https://source.unsplash.com/random/1920x600/?travel');
+    background-size: cover;
+    color: white;
+    padding: 120px 0;
+    margin-bottom: 40px;
+}
+
+.offer-card {
+    transition: transform 0.3s;
+    border: none;
+    box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+}
+
+.offer-card:hover {
+    transform: translateY(-10px);
+}
+
+.price-badge {
+    position: absolute;
+    top: -15px;
+    right: -15px;
+    background: var(--accent-color) !important;
+    font-size: 1.2rem;
+    padding: 10px 20px;
+    z-index: 1;
+}
+
+.opacity-50 {
+    opacity: 0.5;
+}
+
+
