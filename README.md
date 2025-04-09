@@ -6,10 +6,9 @@
 
 A web application for discovering exclusive travel package deals using Expedia's API. Search by cities and find the best vacation packages with savings information.
 
-🌐 **Live Demo**: [https://www.example.com](https://www.example.com)  
+🌐 **Live Demo**: [ http://digisol-task.rafattec.com/](http://digisol-task.rafattec.com/)  
 📂 **GitHub Repository**: [https://github.com/ZeyadAlQutaifan/Digisol-task](https://github.com/ZeyadAlQutaifan/Digisol-task)
 
-![Travel Package Finder Demo](screenshots/demo-screenshot.png)
 
 ## ✨ Features
 - 🔍 Search package deals by origin and destination cities
@@ -29,7 +28,7 @@ A web application for discovering exclusive travel package deals using Expedia's
 ## ⚙️ Prerequisites
 - Java 17 JDK
 - Maven 3.8+
-- Expedia API Client ID (free tier)
+
 
 ## 🚀 Getting Started
 
