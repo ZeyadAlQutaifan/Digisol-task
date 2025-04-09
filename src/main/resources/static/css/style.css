@@ -9,7 +9,7 @@ body {
 }
 
 .hero-section {
-    background: linear-gradient(rgba(0,0,0,0.7), rgba(0,0,0,0.7)),
+    background: linear-gradient(rgba(0, 0, 0, 0.7), rgba(0, 0, 0, 0.7)),
     url('https://source.unsplash.com/random/1920x600/?travel');
     background-size: cover;
     color: white;
@@ -20,7 +20,7 @@ body {
 .offer-card {
     transition: transform 0.3s;
     border: none;
-    box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
 }
 
 .offer-card:hover {
@@ -37,8 +37,25 @@ body {
     z-index: 1;
 }
 
-.opacity-50 {
-    opacity: 0.5;
+.pagination .disabled {
+    opacity: 0.6;
+    pointer-events: none;
+}
+.hotel-image {
+    height: 200px;
+    object-fit: cover;
+    border-radius: 8px 8px 0 0;
 }
 
+.stars {
+    color: #ffc107;
+    font-size: 1.2rem;
+}
 
+.table-sm td {
+    padding: 0.3rem;
+}
+
+.btn-sm {
+    padding: 0.25rem 0.5rem;
+}

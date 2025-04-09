@@ -1,93 +1,137 @@
-let currentPage = 0;
-let totalPages = 0;
-const pageSize = 10;
+let allOffers = [];
+let currentPage = 1;
+const pageSize = 6;
 
-document.getElementById('searchForm').addEventListener('submit', function(e) {
+document.getElementById('searchForm').addEventListener('submit', function (e) {
     e.preventDefault();
-    currentPage = 0;
-    fetchOffers();
-});
-
-document.getElementById('prevBtn').addEventListener('click', () => {
-    if (currentPage > 0) {
-        currentPage--;
-        fetchOffers();
-    }
-});
-
-document.getElementById('nextBtn').addEventListener('click', () => {
-    if (currentPage < totalPages - 1) {
-        currentPage++;
-        fetchOffers();
-    }
-});
-
-async function fetchOffers() {
     const from = document.getElementById('fromCity').value;
     const to = document.getElementById('toCity').value;
 
-    toggleLoading(true);
+    // Show loading state
+    const searchBtn = this.querySelector('button');
+    searchBtn.innerHTML = '<span class="spinner-border spinner-border-sm"></span> Searching...';
+    searchBtn.disabled = true;
 
-    try {
-        const response = await fetch(`/api/search?fromCity=${encodeURIComponent(from)}&toCity=${encodeURIComponent(to)}&page=${currentPage}&size=${pageSize}`);
-        const data = await response.json();
+    fetch(`/search?fromCity=${encodeURIComponent(from)}&toCity=${encodeURIComponent(to)}`)
+        .then(res => res.json())
+        .then(data => {
+            allOffers = data;
+            currentPage = 1;
+            renderPage();
+            document.getElementById('pagination').classList.toggle('d-none', data.length <= pageSize);
+            searchBtn.innerHTML = '<i class="bi bi-search"></i> Search';
+            searchBtn.disabled = false;
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            searchBtn.innerHTML = '<i class="bi bi-search"></i> Search';
+            searchBtn.disabled = false;
+        });
+});
 
-        renderOffers(data.content);
-        updatePagination(data);
-    } catch (error) {
-        console.error('Error:', error);
-        showError();
-    } finally {
-        toggleLoading(false);
-    }
-}
+function renderPage() {
+    const start = (currentPage - 1) * pageSize;
+    const end = start + pageSize;
+    const paginatedOffers = allOffers.slice(start, end);
 
-function renderOffers(offers) {
     const resultsDiv = document.getElementById('results');
     resultsDiv.innerHTML = '';
 
-    offers.forEach(offer => {
+    if (paginatedOffers.length === 0) {
+        resultsDiv.innerHTML = `
+                <div class="col-12 text-center py-5">
+                    <h3 class="text-muted">No results found</h3>
+                    <p class="text-muted">Try adjusting your search criteria</p>
+                </div>`;
+        return;
+    }
+
+    paginatedOffers.forEach(offer => {
         const card = document.createElement('div');
         card.className = 'col-md-6 col-lg-4';
         card.innerHTML = `
-            <div class="offer-card card h-100 position-relative">
-                <span class="price-badge badge rounded-pill">$${offer.price}</span>
-                <img src="https://source.unsplash.com/random/400x300/?${encodeURIComponent(offer.toCity)},travel"
-                     class="card-img-top"
-                     alt="${offer.toCity}"
-                     loading="lazy">
-                <div class="card-body">
-                    <h5 class="card-title">${offer.fromCity} ➔ ${offer.toCity}</h5>
-                    <div class="card-text">
-                        <p class="text-muted">
-                            <i class="bi bi-building"></i> ${offer.hotelName}
-                        </p>
-                        <div class="d-grid">
-                            <button class="btn btn-outline-warning">احجز الآن</button>
-                        </div>
-                    </div>
+<div class="offer-card card h-100 position-relative">
+    <span class="price-badge badge rounded-pill">${offer.percentSavings}% off</span>
+    <img src="${offer.hotelImageUrl}" class="card-img-top hotel-image" alt="${offer.toCity}">
+
+    <div class="card-body">
+        <div class="d-flex justify-content-between align-items-center mb-3">
+            <h5 class="card-title m-0">${offer.fromCity} ➔ ${offer.toCity}</h5>
+            <img src="${offer.flightDealCarrierImageUrl}"
+                 alt="${offer.flightDealCarrier}"
+                 style="height: 30px;">
+        </div>
+
+        <div class="hotel-rating mb-3">
+            <span class="stars">${'★'.repeat(Math.floor(offer.hotelStarRating))}</span>
+            <small class="text-muted">(${offer.hotelGuestReviewRating} rating)</small>
+        </div>
+
+        <div class="row g-2 mb-3">
+            <div class="col-6">
+                <div class="bg-light p-2 rounded text-center">
+                    <small class="text-muted d-block">Departure Date</small>
+                    <strong>${offer.formattedTravelStartDate}</strong>
                 </div>
-            </div>`;
+            </div>
+            <div class="col-6">
+                <div class="bg-light p-2 rounded text-center">
+                    <small class="text-muted d-block">Return Date</small>
+                    <strong>${offer.formattedTravelEndDate}</strong>
+                </div>
+            </div>
+        </div>
+
+        <div class="pricing-info">
+            <table class="table table-sm">
+                <tr>
+                    <td>Price per person:</td>
+                    <td class="text-end">${offer.formattedPerPassengerPackagePrice}</td>
+                </tr>
+                <tr>
+                    <td>Total price:</td>
+                    <td class="text-end">${offer.formattedTotalPriceValue}</td>
+                </tr>
+                <tr class="table-success">
+                    <td>You save:</td>
+                    <td class="text-end">${offer.formattedTotalSavings}</td>
+                </tr>
+            </table>
+        </div>
+
+        <div class="d-grid gap-2">
+            <button class="btn btn-warning">Book Now</button>
+            <button class="btn btn-outline-secondary btn-sm">
+                <i class="bi bi-info-circle"></i> Details
+            </button>
+        </div>
+    </div>
+</div>`;
         resultsDiv.appendChild(card);
     });
+
+    document.getElementById('pageNumber').innerText = currentPage;
+    updatePaginationButtons();
 }
 
-function updatePagination(data) {
-    totalPages = data.totalPages;
-    document.getElementById('pageInfo').innerText = `الصفحة ${currentPage + 1} من ${totalPages}`;
-    document.getElementById('prevBtn').disabled = currentPage === 0;
-    document.getElementById('nextBtn').disabled = currentPage === totalPages - 1;
+function prevPage() {
+    if (currentPage > 1) {
+        currentPage--;
+        renderPage();
+    }
 }
 
-function toggleLoading(isLoading) {
-    document.querySelectorAll('button').forEach(btn => btn.disabled = isLoading);
-    document.getElementById('pagination').classList.toggle('opacity-50', isLoading);
+function nextPage() {
+    if ((currentPage * pageSize) < allOffers.length) {
+        currentPage++;
+        renderPage();
+    }
 }
 
-function showError() {
-    document.getElementById('results').innerHTML = `
-        <div class="col-12 text-center py-5">
-            <h3 class="text-danger">حدث خطأ أثناء جلب البيانات</h3>
-            <button class="btn btn-outline-danger mt-3" onclick="fetchOffers()">إعادة المحاولة</button>
-        </div>`;
+function updatePaginationButtons() {
+    const prevBtn = document.querySelector('.page-item:first-child .page-link');
+    const nextBtn = document.querySelector('.page-item:last-child .page-link');
+
+    prevBtn.disabled = currentPage === 1;
+    nextBtn.disabled = (currentPage * pageSize) >= allOffers.length;
 }
