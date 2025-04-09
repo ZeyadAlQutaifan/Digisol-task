@@ -1,13 +1,32 @@
-# Stage 1: Build with Maven
-FROM maven:3.9.6-eclipse-temurin-17-alpine AS build
-WORKDIR /app
-COPY pom.xml .
-COPY src ./src
-RUN mvn clean package -DskipTests
+# Stage 1: Build the application using Maven
+FROM maven:3.9.6-eclipse-temurin-17-alpine AS builder
 
-# Stage 2: Run the app
-FROM eclipse-temurin:17-jdk-alpine
+# Set working directory
 WORKDIR /app
-COPY --from=build /app/target/*.jar app.jar
+
+# Copy the POM file first (to leverage Docker cache)
+COPY pom.xml .
+
+# Download dependencies (this step is cached as long as pom.xml doesn't change)
+RUN mvn dependency:go-offline
+
+# Copy the rest of the source code
+COPY src ./src
+
+# Build the application
+RUN mvn package -DskipTests
+
+# Stage 2: Create the runtime image
+FROM eclipse-temurin:17-jre-alpine
+
+# Set working directory
+WORKDIR /app
+
+# Copy the built JAR from the builder stage
+COPY --from=builder /app/target/DigiSol-task-0.0.1-SNAPSHOT.jar app.jar
+
+# Expose the port your app runs on (change if needed)
 EXPOSE 8080
-ENTRYPOINT ["java", "-jar", "app.jar", "--package.base-url=https://offersvc.expedia.com/offers/v2/getOffers", "--package.scenario=deal-finder", "--package.uid=test", "--package.product-type=Package", "--package.client-id=test", "--package.page=foo"]
+
+# Set the entry point to run the application
+ENTRYPOINT ["java", "-jar", "app.jar"]

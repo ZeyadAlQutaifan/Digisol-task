@@ -20,9 +20,10 @@ public class PackageService {
     private final RestTemplate restTemplate;
     private final PackageConfig packageConfig;
 
+
     public List<PackageOfferDto> searchPackages(String fromCity, String toCity) {
+
         String url = buildApiUrl(fromCity, toCity);
-        log.info("Calling external API: {}", url);
 
         TravelOffersResponseDto response = restTemplate.getForObject(url, TravelOffersResponseDto.class);
         List<PackageOfferDto> dtos = convertToDtos(response);
