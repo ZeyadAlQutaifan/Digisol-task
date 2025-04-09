@@ -3,9 +3,16 @@ package com.digisol.task.digisoltask.service;
 import com.digisol.task.digisoltask.config.PackageConfig;
 import com.digisol.task.digisoltask.dto.PackageOfferDto;
 import com.digisol.task.digisoltask.dto.TravelOffersResponseDto;
+import com.google.common.util.concurrent.RateLimiter;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+
+import org.springframework.http.HttpEntity;
+import org.springframework.http.HttpMethod;
+import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
+import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.util.UriComponentsBuilder;
 
@@ -20,15 +27,23 @@ public class PackageService {
     private final RestTemplate restTemplate;
     private final PackageConfig packageConfig;
 
-
     public List<PackageOfferDto> searchPackages(String fromCity, String toCity) {
 
         String url = buildApiUrl(fromCity, toCity);
+        log.info("Calling external API: {}", url);
+        try {
+            ResponseEntity<TravelOffersResponseDto> response = restTemplate.exchange(
+                    url,
+                    HttpMethod.GET,
+                    null,
+                    TravelOffersResponseDto.class
+            );
 
-        TravelOffersResponseDto response = restTemplate.getForObject(url, TravelOffersResponseDto.class);
-        List<PackageOfferDto> dtos = convertToDtos(response);
-
-        return dtos;
+            return convertToDtos(response.getBody());
+        } catch (HttpClientErrorException e) {
+            log.error("API request failed with status: {}", e.getStatusCode());
+            throw new RuntimeException("Failed to fetch packages", e);
+        }
     }
 
     private String buildApiUrl(String fromCity, String toCity) {
